@@ -48,7 +48,7 @@ window.addEventListener("keydown", function(e) {
 
 function preload() {
   // load background image
-  backgroundImage = loadImage("assets/img/backgrounds/BG.png");
+  backgroundImage = loadImage("assets/img/backgrounds/Thanos.png");
 
   // load platform images
   platformImageFirst = loadImage("assets/img/tiles/Tile (14).png");
@@ -109,9 +109,19 @@ function buildLevel() {
 
   // create platforms, monsters, and any other game objects
   // best method is to draw sprites from left to right on the screen
+  //createPlatform/createCollectable(x, y, length)
+  //createMonster(x, y, velocity)
+  // x = the higher the number the more the thingie goes to the right.
+  // y = the higher the number the lower the thingie goes to the bottom.
   createPlatform(50, 690, 5);
   createCollectable(300, 340);
-  createMonster(500, 600, -1);
+  createMonster(500, 600, -2);
+
+  createPlatform
+
+  createPlatform(-450, 560, 2);
+  goal = createSprite(-350, 560);
+  goal.addImage(goalImage);
 }
 
 // Creates a player sprite and adds animations and a collider to it
@@ -166,7 +176,7 @@ function createMonster(x, y, velocity) {
   //monster.debug = true;
 }
 
-// Creates a collectable sprite and adds an image to it.
+//Creates a collectable sprite and adds an image to it.
 function createCollectable(x, y) {
   var collectable = createSprite(x, y, 0, 0);
   collectable.addToGroup(collectables);
@@ -202,6 +212,8 @@ function checkCollisions() {
     player.collide(platforms, platformCollision);
     monsters.collide(platforms, platformCollision);
     player.collide(monsters,playerMonsterCollision);[]
+    player.overlap(collectables, getCollectable);
+    player.overlap(goal, executeWin);
 }
 
 // Callback function that runs when the player or a monster collides with a
@@ -242,13 +254,16 @@ function playerMonsterCollision(player, monster) {
 
 // Callback function that runs when the player overlaps with a collectable.
 function getCollectable(player, collectable) {
-
+  if(player.touching){
+    collectable.remove();
+    score++;
+  }
 }
 
 // Updates the player's position and current animation by calling
 // all of the relevant "check" functions below.
 function updatePlayer() {
-  //console.log("Player x: " + player.position.x + " Player y: " + player.position.y);
+  console.log("Player x: " + player.position.x + " Player y: " + player.position.y);
   checkIdle();
   checkFalling();
   checkJumping();
@@ -280,7 +295,7 @@ function checkFalling() {
 function checkJumping() {
   if(player.velocity.y < 0) {
     player.changeAnimation("jump");
-    if(keyIsDown(UP_ARROW) && currentJumpTime > 0) {
+    if(keyIsDown(32) && currentJumpTime > 0) {
       player.velocity.y = currentJumpForce;
       deltaMillis = new Date();
       currentJumpTime -= deltaMillis - millis;
@@ -312,7 +327,7 @@ function checkMovingLeftRight() {
 // this should initiate the jump sequence, which can be extended by holding down
 // the up arrow key (see checkJumping() above).
 function keyPressed() {
-  if(keyCode === UP_ARROW && playerGrounded) {
+  if(keyCode === 32 && playerGrounded) {
     playerGrounded = false;
     player.velocity.y = currentJumpForce;
     millis = new Date();
@@ -323,7 +338,7 @@ function keyPressed() {
 // is < 0 (that is, she is currently moving "up" on the canvas), then this will
 // immediately set currentJumpTime to 0, causing her to begin falling.
 function keyReleased() {
-  if(keyCode === UP_ARROW && player.velocity.y < 0) {
+  if(keyCode === 32 && player.velocity.y < 0) {
     currentJumpTime = 0;
   }
 }
@@ -352,7 +367,7 @@ function updateDisplay() {
   image(backgroundImage, 0, 0);
 
   // update score HUD
-  textSize(32);
+  textSize(24);
   fill(255);
   text("Score: " + score, 30, 50);
 
@@ -362,12 +377,19 @@ function updateDisplay() {
   //camera follows player
   camera.position.x = player.position.x;
   camera.position.y = player.position.y;
+
+  for(i = 0; i < collectables.length; i++){
+      collectables[i].rotation +=5;
+    }
+
 }
 
 // Called when the player has won the game (e.g., reached the goal at the end).
 // Anything can happen here, but the most important thing is that we call resetGame()
 // after a short delay.
 function executeWin() {
+  noLoop();
+  setTimeout(resetGame, 1000);
 
 }
 
